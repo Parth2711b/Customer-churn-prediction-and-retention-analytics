@@ -1,5 +1,5 @@
 """
-Customer Churn Risk Score (0-100)  —  v2 (now includes Balance)
+Customer Churn Risk Score (0-100)  -  v2 (now includes Balance)
 ================================================================
 Input : uploads/churn_cleaned.csv
 Output: churn_with_risk_score.csv  (original data + RiskScore + RiskTier)

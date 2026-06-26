@@ -12,7 +12,7 @@ X_test_transformed_saved = np.load('X_test_transformed.npy')
 y_test_saved = pd.read_csv('y_test.csv').squeeze()
 
 st.set_page_config(
-    page_title="FintelliQ — Churn Predictor", 
+    page_title="FintelliQ - Churn Predictor", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -114,7 +114,7 @@ gender_val           = 1 if gender == "Male" else 0
 is_zero_balance      = 1 if balance == 0 else 0
 balance_salary_ratio = balance / estimated_salary if estimated_salary > 0 else 0
 is_germany           = 1 if geography == "Germany" else 0
-is_high_risk         = 1 if (num_products >= 3 and is_active_val == 0) else 0
+is_high_risk         = 1 if (num_products >= 3) else 0
 is_inactive_senior   = 1 if (age > 60 and is_active_val == 0) else 0
 is_female_germany    = 1 if (gender == "Female" and geography == "Germany") else 0
 age_group = "Young" if age < 30 else "Mid" if age < 45 else "Senior" if age < 60 else "Old"
@@ -229,7 +229,7 @@ if similar_count > 10:
     similar_churn_rate = y_test_saved.values[mask].mean()
     comparable_html = f"""
     <p style="margin-top:16px; font-size:12px; color:#8a8a93; padding-top:14px; border-top:1px solid #262629;">
-        Among <strong style="color:#f4f4f5;">{similar_count}</strong> customers with similar profile —
+        Among <strong style="color:#f4f4f5;">{similar_count}</strong> customers with similar profile -
         <strong style="color:{text_color};">{similar_churn_rate:.0%}</strong> churned historically.
     </p>
     """
