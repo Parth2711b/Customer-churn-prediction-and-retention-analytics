@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FintelliQ — Churn Intelligence Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #131315;
+  --surface2: #1c1c1f;
+  --border: #262629;
+  --border2: #333336;
+  --text: #f4f4f5;
+  --muted: #8a8a93;
+  --muted2: #606068;
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f97316;
+  --yellow: #eab308;
+  --blue: #3b82f6;
+  --green-bg: rgba(34,197,94,0.08);
+  --red-bg: rgba(239,68,68,0.08);
+  --orange-bg: rgba(249,115,22,0.08);
+  --blue-bg: rgba(59,130,246,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Layout */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.main {
+  margin-left: 220px;
+  flex: 1;
+  padding: 32px;
+  max-width: 1400px;
+}
+
+/* Sidebar */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.brand-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: var(--text);
+}
+
+.brand-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.brand-sub { font-size: 11px; color: var(--muted); }
+
+.nav-section {
+  padding: 16px 20px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.nav-item:hover { color: var(--text); background: var(--surface2); }
+.nav-item.active { color: var(--text); border-left-color: var(--text); background: var(--surface2); }
+
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--muted2);
+  flex-shrink: 0;
+}
+
+.nav-item.active .nav-dot { background: var(--text); }
+
+/* Header */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-title { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent, var(--border));
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.kpi-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent, var(--text));
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.kpi-note { font-size: 12px; color: var(--muted2); }
+
+/* Section */
+.section { margin-bottom: 28px; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.section-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* Charts Grid */
+.charts-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.charts-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.chart-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.chart-sub { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+
+/* Bar chart */
+.bar-list { display: flex; flex-direction: column; gap: 10px; }
+
+.bar-row { display: flex; flex-direction: column; gap: 4px; }
+
+.bar-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.bar-name { color: var(--muted); }
+.bar-val { font-weight: 600; color: var(--text); }
+
+.bar-track {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+/* Model Performance */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.model-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.model-metric { font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.model-value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.model-desc { font-size: 11px; color: var(--muted2); margin-top: 4px; }
+
+/* Risk Tier Table */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.tier-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.tier-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.tier-range { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.tier-label { font-size: 12px; color: var(--muted); }
+
+/* Interactions */
+.interaction-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.interaction-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.interaction-label { flex: 1; font-size: 13px; color: var(--text); font-weight: 500; }
+.interaction-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.interaction-rate {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Recommendations */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.rec-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.rec-num {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  flex-shrink: 0;
+}
+
+.rec-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.rec-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* Unused features section */
+.unused-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.unused-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.unused-name { font-size: 12px; color: var(--muted); }
+.unused-rate { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* Footer */
+.footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--muted2);
+  display: flex;
+  justify-content: space-between;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">F</div>
+    <div>
+      <div class="brand-name">FintelliQ</div>
+      <div class="brand-sub">Churn Intelligence</div>
+    </div>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a class="nav-item active" href="#overview"><div class="nav-dot"></div>Dashboard</a>
+  <a class="nav-item" href="#model"><div class="nav-dot"></div>Model Performance</a>
+
+  <div class="nav-section">Analysis</div>
+  <a class="nav-item" href="#drivers"><div class="nav-dot"></div>Churn Drivers</a>
+  <a class="nav-item" href="#segments"><div class="nav-dot"></div>Risk Segments</a>
+  <a class="nav-item" href="#interactions"><div class="nav-dot"></div>Interactions</a>
+
+  <div class="nav-section">Actions</div>
+  <a class="nav-item" href="#recommendations"><div class="nav-dot"></div>Recommendations</a>
+  <a class="nav-item" href="#unused"><div class="nav-dot"></div>Weak Signals</a>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+
+  <!-- Header -->
+  <div class="page-header" id="overview">
+    <div>
+      <div class="page-title">Churn Risk & Retention Dashboard</div>
+      <div class="page-sub">10,000 customer records · Bank Customer Churn Dataset · XGBoost Model</div>
+    </div>
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Analysis Complete
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--accent: var(--blue)">
+      <div class="kpi-label">Total Customers</div>
+      <div class="kpi-value">10,000</div>
+      <div class="kpi-note">Analysis population</div>
+    </div>
+    <div class="kpi-card" style="--accent: var(--red)">
+      <div class="kpi-label">Churned</div>
+      <div class="kpi-value" style="color: var(--red)">2,038</div>
+      <div class="kpi-note">Exited the bank</div>
+    </div>
+    <div class="kpi-card" style="--accent: var(--green)">
+      <div class="kpi-label">Retained</div>
+      <div class="kpi-value" style="color: var(--green)">7,962</div>
+      <div class="kpi-note">Active customers</div>
+    </div>
+    <div class="kpi-card" style="--accent: var(--orange)">
+      <div class="kpi-label">Churn Rate</div>
+      <div class="kpi-value" style="color: var(--orange)">20.4%</div>
+      <div class="kpi-note">Baseline — 4x industry average</div>
+    </div>
+  </div>
+
+  <!-- Model Performance -->
+  <div class="section" id="model">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Model Performance</div>
+        <div class="section-sub">XGBoost · Hyperparameter tuned · Threshold optimized at 0.35</div>
+      </div>
+    </div>
+    <div class="model-grid">
+      <div class="model-card">
+        <div class="model-metric">ROC-AUC</div>
+        <div class="model-value" style="color: var(--green)">0.874</div>
+        <div class="model-desc">Strong discrimination ability</div>
+      </div>
+      <div class="model-card">
+        <div class="model-metric">Recall</div>
+        <div class="model-value" style="color: var(--blue)">81.6%</div>
+        <div class="model-desc">Churners correctly flagged</div>
+      </div>
+      <div class="model-card">
+        <div class="model-metric">Precision</div>
+        <div class="model-value" style="color: var(--orange)">46.1%</div>
+        <div class="model-desc">Flagged customers who churned</div>
+      </div>
+      <div class="model-card">
+        <div class="model-metric">Business Cost</div>
+        <div class="model-value" style="color: var(--red)">₹7.65L</div>
+        <div class="model-desc">At optimal threshold vs ₹20.38L baseline</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Churn Drivers -->
+  <div class="section" id="drivers">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Churn Drivers</div>
+        <div class="section-sub">Observed churn rate by customer segment — EDA findings</div>
+      </div>
+    </div>
+    <div class="charts-3">
+
+      <!-- NumOfProducts -->
+      <div class="chart-card">
+        <div class="chart-title">Number of Products</div>
+        <div class="chart-sub">Strongest signal — cliff after 2 products</div>
+        <div class="bar-list">
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">1 product</span><span class="bar-val" style="color:var(--orange)">27.7%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:27.7%;background:var(--orange)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">2 products</span><span class="bar-val" style="color:var(--green)">7.6%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:7.6%;background:var(--green)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">3 products</span><span class="bar-val" style="color:var(--red)">82.7%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:82.7%;background:var(--red)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">4 products</span><span class="bar-val" style="color:var(--red)">100.0%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--red)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Age Band -->
+      <div class="chart-card">
+        <div class="chart-title">Age Band</div>
+        <div class="chart-sub">50–59 is the highest-risk cohort at 56%</div>
+        <div class="bar-list">
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">18–29</span><span class="bar-val" style="color:var(--green)">7.6%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:7.6%;background:var(--green)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">30–39</span><span class="bar-val" style="color:var(--green)">10.9%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:10.9%;background:var(--green)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">40–49</span><span class="bar-val" style="color:var(--orange)">30.8%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:30.8%;background:var(--orange)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">50–59</span><span class="bar-val" style="color:var(--red)">56.0%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:56%;background:var(--red)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">60+</span><span class="bar-val" style="color:var(--orange)">27.9%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:27.9%;background:var(--orange)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Geography -->
+      <div class="chart-card">
+        <div class="chart-title">Geography</div>
+        <div class="chart-sub">Germany churns at 2x France and Spain</div>
+        <div class="bar-list">
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">France</span><span class="bar-val" style="color:var(--blue)">16.2%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:16.2%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Spain</span><span class="bar-val" style="color:var(--blue)">16.7%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:16.7%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Germany</span><span class="bar-val" style="color:var(--orange)">32.4%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:32.4%;background:var(--orange)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity -->
+      <div class="chart-card">
+        <div class="chart-title">Activity Status</div>
+        <div class="chart-sub">Inactive members churn at nearly 2x active</div>
+        <div class="bar-list">
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Active</span><span class="bar-val" style="color:var(--green)">14.3%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:14.3%;background:var(--green)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Inactive</span><span class="bar-val" style="color:var(--orange)">26.9%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:26.9%;background:var(--orange)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gender -->
+      <div class="chart-card">
+        <div class="chart-title">Gender</div>
+        <div class="chart-sub">Female customers churn at 1.5x male rate</div>
+        <div class="bar-list">
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Male</span><span class="bar-val" style="color:var(--blue)">16.5%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:16.5%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Female</span><span class="bar-val" style="color:var(--orange)">25.1%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:25.1%;background:var(--orange)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Balance -->
+      <div class="chart-card">
+        <div class="chart-title">Account Balance</div>
+        <div class="chart-sub">Zero balance is protective — 100–150k is peak risk</div>
+        <div class="bar-list">
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Zero</span><span class="bar-val" style="color:var(--green)">13.8%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:13.8%;background:var(--green)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">50k–100k</span><span class="bar-val" style="color:var(--blue)">19.9%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:19.9%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">100k–150k</span><span class="bar-val" style="color:var(--orange)">25.8%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:25.8%;background:var(--orange)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">150k+</span><span class="bar-val" style="color:var(--blue)">23.1%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:23.1%;background:var(--blue)"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Risk Tiers -->
+  <div class="section" id="segments">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Risk Tier Classification</div>
+        <div class="section-sub">0–100 rule-based score derived from EDA churn rates</div>
+      </div>
+    </div>
+    <div class="tier-grid">
+      <div class="tier-card">
+        <div class="tier-badge" style="background:var(--green-bg);color:var(--green)">Low</div>
+        <div class="tier-range">0 – 20</div>
+        <div class="tier-label">Monitor quarterly</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-badge" style="background:var(--blue-bg);color:var(--blue)">Medium</div>
+        <div class="tier-range">21 – 40</div>
+        <div class="tier-label">Engage proactively</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-badge" style="background:var(--orange-bg);color:var(--orange)">High</div>
+        <div class="tier-range">41 – 60</div>
+        <div class="tier-label">Retention outreach</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-badge" style="background:var(--red-bg);color:var(--red)">Critical</div>
+        <div class="tier-range">61 – 100</div>
+        <div class="tier-label">Immediate intervention</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- High Risk Interactions -->
+  <div class="section" id="interactions">
+    <div class="section-header">
+      <div>
+        <div class="section-title">High-Risk Interaction Segments</div>
+        <div class="section-sub">Combined feature signals — engineered during feature engineering phase</div>
+      </div>
+    </div>
+    <div class="charts-2">
+      <div class="interaction-card">
+        <div class="interaction-row">
+          <div>
+            <div class="interaction-label">Overall Baseline</div>
+            <div class="interaction-sub">All 10,000 customers</div>
+          </div>
+          <div class="interaction-rate" style="color:var(--blue)">20.4%</div>
+        </div>
+        <div class="interaction-row">
+          <div>
+            <div class="interaction-label">Female + Germany</div>
+            <div class="interaction-sub">IsFemaleGermany = 1</div>
+          </div>
+          <div class="interaction-rate" style="color:var(--orange)">37.6%</div>
+        </div>
+        <div class="interaction-row">
+          <div>
+            <div class="interaction-label">Inactive Senior (50+)</div>
+            <div class="interaction-sub">IsInactiveSenior = 1</div>
+          </div>
+          <div class="interaction-rate" style="color:var(--red)">83.5%</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Risk Score Point Budget</div>
+        <div class="chart-sub">How 100 points are allocated across churn drivers</div>
+        <div class="bar-list" style="margin-top:8px">
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">NumOfProducts</span><span class="bar-val">28 pts</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:28%;background:var(--orange)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Age</span><span class="bar-val">23 pts</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:23%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Geography</span><span class="bar-val">14 pts</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">IsActiveMember</span><span class="bar-val">11 pts</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:11%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Interactions</span><span class="bar-val">9 pts</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:9%;background:var(--green)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Balance</span><span class="bar-val">8 pts</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--blue)"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-meta"><span class="bar-name">Gender</span><span class="bar-val">7 pts</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:7%;background:var(--blue)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="section" id="recommendations">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Retention Recommendations</div>
+        <div class="section-sub">Prioritized by churn impact and segment size</div>
+      </div>
+    </div>
+    <div class="rec-grid">
+      <div class="rec-card">
+        <div class="rec-num">1</div>
+        <div>
+          <div class="rec-title">Investigate 3–4 product customers</div>
+          <div class="rec-desc">82–100% churn rate signals product overload, mis-selling, or service friction. Schedule product review calls and consider simplifying portfolios.</div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">2</div>
+        <div>
+          <div class="rec-title">Launch 50–59 care journey</div>
+          <div class="rec-desc">56% churn rate — highest of any age band. Assign relationship managers and offer proactive financial health reviews to this segment.</div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">3</div>
+        <div>
+          <div class="rec-title">Germany-specific retention program</div>
+          <div class="rec-desc">32.4% churn — 2x France and Spain. Investigate local competitor activity, pricing gaps, and service quality issues in the German market.</div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">4</div>
+        <div>
+          <div class="rec-title">Reactivate inactive members</div>
+          <div class="rec-desc">26.9% vs 14.3% churn rate gap. Deploy personalized cashback, fee waiver, or financial checkup campaigns for inactive customers before they churn.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weak Signals -->
+  <div class="section" id="unused">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Weak Signals — Dropped from Model</div>
+        <div class="section-sub">Features with near-zero churn rate difference — excluded to reduce noise</div>
+      </div>
+    </div>
+    <div class="unused-grid">
+      <div class="unused-card">
+        <div>
+          <div class="unused-name">HasCrCard = 0</div>
+          <div style="font-size:11px;color:var(--muted2)">No credit card</div>
+        </div>
+        <div class="unused-rate">20.8%</div>
+      </div>
+      <div class="unused-card">
+        <div>
+          <div class="unused-name">HasCrCard = 1</div>
+          <div style="font-size:11px;color:var(--muted2)">Has credit card</div>
+        </div>
+        <div class="unused-rate">20.2%</div>
+      </div>
+      <div class="unused-card">
+        <div>
+          <div class="unused-name">Card Type</div>
+          <div style="font-size:11px;color:var(--muted2)">Diamond / Gold / Platinum / Silver</div>
+        </div>
+        <div class="unused-rate">19–22%</div>
+      </div>
+      <div class="unused-card">
+        <div>
+          <div class="unused-name">Satisfaction Score</div>
+          <div style="font-size:11px;color:var(--muted2)">1 to 5 — flat distribution</div>
+        </div>
+        <div class="unused-rate">~20%</div>
+      </div>
+      <div class="unused-card">
+        <div>
+          <div class="unused-name">Point Earned</div>
+          <div style="font-size:11px;color:var(--muted2)">Loyalty points — no separation</div>
+        </div>
+        <div class="unused-rate">~20%</div>
+      </div>
+      <div class="unused-card">
+        <div>
+          <div class="unused-name">EstimatedSalary</div>
+          <div style="font-size:11px;color:var(--muted2)">Completely flat distribution</div>
+        </div>
+        <div class="unused-rate">~20%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>FintelliQ — Customer Churn Intelligence Platform · Built with XGBoost, SHAP, MLflow</span>
+    <span>Dataset: Bank Customer Churn (Kaggle) · 10,000 records · June 2026</span>
+  </div>
+
+</main>
+</div>
+
+</body>
+</html>
