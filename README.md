@@ -112,6 +112,7 @@ A real-time churn risk tool built for bank operations teams. Adjust a customer p
 Features include churn probability with confidence interval and risk tier (Low, Medium, High, Critical), a SHAP chart explaining which features drove the prediction for that specific customer, personalised retention recommendations mapped from top SHAP contributors, a What-If Simulator that shows the probability shift when membership status or product count changes, and a peer benchmark showing historical churn rate among customers with a similar profile.
 
 To run locally:
+Live demo: https://huggingface.co/spaces/Bansal27/fintelliQ-churn
 
 ```bash
 cd app
